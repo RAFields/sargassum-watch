@@ -121,15 +121,19 @@ def download_all_files(url, dl_loc, searchterm=None):
         complete.append(u)
 
 #Translates *.nc to GeoTiFF format
-def translate_all_to_tif(dl_loc, verbose=False):
+def translate_all_to_tif(dl_loc, verbose=False, rrs=False):
     files = [x for x in os.listdir(dl_loc) if x.endswith('.nc')]
     for f in files:
-        if verbose: print('gdal_translate '+dl_loc+'/'+f+' -sds '+dl_loc+'/{O}_out.tif -sds -ot UInt16 -of GTiFF'.format(F=f, O=f))
-        commands.getoutput('gdal_translate '+dl_loc+'/'+f+' -sds '+dl_loc+'/{O}_out.tif -sds -ot UInt16 -of GTiFF'.format(F=f, O=f))
+        if rrs:
+            if verbose: print('gdal_translate '+dl_loc+'/'+f+' -sds '+dl_loc+'/{O}_out.tif -sds'.format(F=f, O=f))
+            commands.getoutput('gdal_translate '+dl_loc+'/'+f+' -sds '+dl_loc+'/{O}_out.tif -sds'.format(F=f, O=f))
+        else:
+            if verbose: print('gdal_translate '+dl_loc+'/'+f+' -sds '+dl_loc+'/{O}_out.tif -sds -ot UInt16 -of GTiFF'.format(F=f, O=f))
+            commands.getoutput('gdal_translate '+dl_loc+'/'+f+' -sds '+dl_loc+'/{O}_out.tif -sds -ot UInt16 -of GTiFF'.format(F=f, O=f))
 
 #Download all files to a given directory
 #Default lat/lon for Cancun
-def download_url_to_directory(url, dl_loc, lat=21.1742900, lon=-86.8465600, scan_radius=7., searchterm=None, scale_max=8000., expand_files=False):
+def download_url_to_directory(url, dl_loc, lat=21.1742900, lon=-86.8465600, scan_radius=7., searchterm=None, scale_max=8000., expand_files=False, rrs=False):
     download_all_files(url, dl_loc, searchterm=searchterm)
     try:
         os.mkdir(dl_loc + '/images')
@@ -138,13 +142,15 @@ def download_url_to_directory(url, dl_loc, lat=21.1742900, lon=-86.8465600, scan
     
     if expand_files:
         #.nc -> .tif
-        translate_all_to_tif(dl_loc)
+        translate_all_to_tif(dl_loc, rrs=rrs)
         
         #get the band size for namign reasons
         bandsize = dl_loc.split('_')[-1]
         
         #Scale to [0, 8000] due to sea temp scale
         #take the .tif file, clip it to lat, lon specs and dump the file under {SUBFOLDER}/images
+        if rrs:
+            scale_max=None
         minclip_tif(lat, lon, scan_radius, bandsize, dl_loc, scale_max=scale_max)
 
 #Example
@@ -166,7 +172,7 @@ if __name__ == "__main__":
                 url = url_base.format(BAND=str(dl_loc.split('_')[-1]), YEAR=year)
                 final_year = year == '2019'
                 print(url)
-                download_url_to_directory(url, dl_loc, expand_files=final_year)
+                download_url_to_directory(url, dl_loc, expand_files=final_year, rrs=True)
             except KeyboardInterrupt: break
             except: pass
             
