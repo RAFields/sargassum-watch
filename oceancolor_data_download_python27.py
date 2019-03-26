@@ -175,6 +175,11 @@ if __name__ == "__main__":
                 download_url_to_directory(url, dl_loc, expand_files=final_year, rrs=True)
             except KeyboardInterrupt: break
             except: pass
+
+        #Clean up our tifs. Disable if you want to keep the tifs/do manual cleanup
+        for f in os.listdir(dl_loc):
+            if f.endswith('tif'):
+                os.remove(dl_loc + '/' + f)
             
     dl_locs = ['sst_0', 'nsst_0', 'aot_0']
     for dl_loc in dl_locs:
@@ -203,3 +208,8 @@ if __name__ == "__main__":
                     download_url_to_directory(url, dl_loc, expand_files=final_year)
             except KeyboardInterrupt: break
             except: pass
+
+        #Clean up our tifs. Disable if you want to keep the tifs/do manual cleanup
+        for f in os.listdir(dl_loc):
+            if f.endswith('tif'):
+                os.remove(dl_loc + '/' + f)
